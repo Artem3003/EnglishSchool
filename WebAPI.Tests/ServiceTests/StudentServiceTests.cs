@@ -29,7 +29,9 @@ public class StudentServiceTests
     public async Task AddAsync_Should_Add_Student_And_SaveChanges()
     {
         // Arrange
-        var student = new Student { Id = 1, Address = "123 Main St", DateOfBirth = DateTime.Now.AddYears(-20), Phone = "1234567890", UserId = 2 };
+        var user = new User { Id = 1, Username = "Bober", Password = "123", Email = "Bob.gmail.com", FullName = "Bob Smith"};
+        await _context.Users.AddAsync(user);
+        var student = new Student { Id = 1, Address = "123 Main St", DateOfBirth = DateTime.Now.AddYears(-20), Phone = "1234567890", UserId = 1 };
 
         // Act
         await _studentService.AddAsync(student);
@@ -38,14 +40,16 @@ public class StudentServiceTests
         var addedStudent = await _context.Students.FindAsync(1);
         Assert.NotNull(addedStudent);
         Assert.Equal("123 Main St", addedStudent.Address);
-        Assert.Equal(2, addedStudent.UserId);
+        Assert.Equal(1, addedStudent.UserId);
     }
 
     [Fact]
     public async Task DeleteAsync_Should_Delete_Student_If_Found()
     {
         // Arrange
-        var student = new Student { Id = 1, Address = "123 Main St", DateOfBirth = DateTime.Now.AddYears(-20), Phone = "1234567890", UserId = 2 };
+        var user = new User { Id = 1, Username = "Bober", Password = "123", Email = "Bob.gmail.com", FullName = "Bob Smith"};
+        await _context.Users.AddAsync(user);
+        var student = new Student { Id = 1, Address = "123 Main St", DateOfBirth = DateTime.Now.AddYears(-20), Phone = "1234567890", UserId = 1 };
         await _context.Students.AddAsync(student);
         await _context.SaveChangesAsync();
 

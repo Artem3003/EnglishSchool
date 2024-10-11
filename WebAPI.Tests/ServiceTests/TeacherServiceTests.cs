@@ -29,6 +29,8 @@ public class TeacherServiceTests
     public async Task AddAsync_Should_Add_Teacher_And_SaveChanges()
     {
         // Arrange
+        var user = new User { Id = 1, Username = "Bober", Password = "123", Email = "Bob.gmail.com", FullName = "Bob Smith"};
+        await _context.Users.AddAsync(user);
         var teacher = new Teacher 
         { 
             Id = 1, 
@@ -37,7 +39,7 @@ public class TeacherServiceTests
             YearsOfExperience = 5, 
             Phone = "123456789", 
             Address = "123 Main St", 
-            UserId = 2 
+            UserId = 1 
         };
 
         // Act
@@ -54,7 +56,9 @@ public class TeacherServiceTests
     public async Task DeleteAsync_Should_Delete_Teacher_If_Found()
     {
         // Arrange
-        var teacher = new Teacher { Id = 1, Bio = "Teacher", Qualification = "BSc", UserId = 2 };
+        var user = new User { Id = 1, Username = "Bober", Password = "123", Email = "Bob.gmail.com", FullName = "Bob Smith"};
+        await _context.Users.AddAsync(user);
+        var teacher = new Teacher { Id = 1, Bio = "Teacher", Qualification = "BSc", UserId = 1 };
         await _context.Teachers.AddAsync(teacher);
         await _context.SaveChangesAsync();
 

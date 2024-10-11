@@ -30,7 +30,9 @@ public class AdminServiceTests
     public async Task AddAsync_Should_Add_Admin_And_SaveChanges()
     {
         // Arrange
-        var admin = new Admin { Id = 1, Role = "Admin", UserId = 2 };
+        var user = new User { Id = 1, Username = "Bober", Password = "123", Email = "Bob.gmail.com", FullName = "Bob Smith"};
+        await _context.Users.AddAsync(user);
+        var admin = new Admin { Id = 1, Role = "Admin", UserId = 1 };
 
         // Act
         await _adminService.AddAsync(admin);
@@ -39,14 +41,16 @@ public class AdminServiceTests
         var addedAdmin = await _context.Admins.FindAsync(1);
         Assert.NotNull(addedAdmin);
         Assert.Equal("Admin", addedAdmin.Role);
-        Assert.Equal(2, addedAdmin.UserId);
+        Assert.Equal(1, addedAdmin.UserId);
     }
 
     [Fact]
     public async Task DeleteAsync_Should_Delete_Admin_If_Found()
     {
         // Arrange
-        var admin = new Admin { Id = 1, Role = "Admin", UserId = 2 };
+        var user = new User { Id = 1, Username = "Bober", Password = "123", Email = "Bob.gmail.com", FullName = "Bob Smith"};
+        await _context.Users.AddAsync(user);
+        var admin = new Admin { Id = 1, Role = "Admin", UserId = 1 };
         await _context.Admins.AddAsync(admin);
         await _context.SaveChangesAsync();
 
