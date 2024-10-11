@@ -32,16 +32,17 @@ public class UserService : IUserService
     {
         ArgumentNullException.ThrowIfNull(modelId);
 
-        var userToRemove = await context.Users.FindAsync(modelId);
-        if (userToRemove != null)
-        {
-            context.Users.Remove(userToRemove);
-            await context.SaveChangesAsync();
-        }
-        else
+        var userToRemove = await context.Users
+            .Where(a => a.Id == modelId)
+            .FirstOrDefaultAsync();
+
+        if (userToRemove == null)
         {
             throw new ArgumentNullException("User not found");
         }
+        
+        context.Users.Remove(userToRemove);
+        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()

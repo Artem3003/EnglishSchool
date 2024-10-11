@@ -34,21 +34,20 @@ public class DemoEnglishSchoolContext : DbContext
             .HasOne(s => s.User)
             .WithOne()
             .HasForeignKey<Student>(s => s.UserId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Teacher>()
             .HasOne(t => t.User)
             .WithOne()
             .HasForeignKey<Teacher>(t => t.UserId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Admin>()
             .HasOne(a => a.User)
             .WithOne()
             .HasForeignKey<Admin>(a => a.UserId)
-            .OnDelete(DeleteBehavior.Cascade)
-            .IsRequired(false);
+            .OnDelete(DeleteBehavior.Cascade);
+
+        base.OnModelCreating(modelBuilder);
     }
 }

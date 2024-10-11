@@ -22,14 +22,14 @@ namespace demo_english_school.Controllers
             this.teacherService = teacherService;
         }
 
-        // GET: api/Teacher
+        // GET: api/teacher
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Teacher>>> GetTeachers()
         {
             return Ok(await teacherService.GetAllAsync());
         }
 
-        // GET: api/Teacher/5
+        // GET: api/teacher/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Teacher>> GetTeacher(int id)
         {
@@ -43,7 +43,7 @@ namespace demo_english_school.Controllers
             return teacher;
         }
 
-        // PUT: api/Teacher/5
+        // PUT: api/teacher/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTeacher(int id, Teacher teacher)
@@ -58,7 +58,7 @@ namespace demo_english_school.Controllers
             return NoContent();
         }
 
-        // POST: api/Teacher
+        // POST: api/teacher
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Teacher>> PostTeacher(Teacher teacher)
@@ -68,7 +68,7 @@ namespace demo_english_school.Controllers
             return CreatedAtAction("GetTeacher", new { id = teacher.Id }, teacher);
         }
 
-        // DELETE: api/Teacher/5
+        // DELETE: api/teacher/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTeacher(int id)
         {

@@ -22,14 +22,14 @@ namespace demo_english_school.Controllers
             this.adminService = adminService;
         }
 
-        // GET: api/Admin
+        // GET: api/admin
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
         {
             return Ok(await adminService.GetAllAsync());
         }
 
-        // GET: api/Admin/5
+        // GET: api/admin/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Admin>> GetAdmin(int id)
         {
@@ -43,7 +43,7 @@ namespace demo_english_school.Controllers
             return admin;
         }
 
-        // PUT: api/Admin/5
+        // PUT: api/admin/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutAdmin(int id, Admin admin)
@@ -58,7 +58,7 @@ namespace demo_english_school.Controllers
             return NoContent();
         }
 
-        // POST: api/Admin
+        // POST: api/admin
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Admin>> PostAdmin(Admin admin)
@@ -70,7 +70,7 @@ namespace demo_english_school.Controllers
             return CreatedAtAction("GetAdmin", new { id = admin.Id }, admin);
         }
 
-        // DELETE: api/Admin/5
+        // DELETE: api/admin/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdmin(int id)
         {

@@ -32,16 +32,22 @@ public class TeacherService : ITeacherService
     {
         ArgumentNullException.ThrowIfNull(modelId);
 
-        var teacherToRemove = await context.Teachers.FindAsync(modelId);
-        if (teacherToRemove != null)
-        {
-            context.Teachers.Remove(teacherToRemove);
-            await context.SaveChangesAsync();
-        }
-        else
+        var teacherToRemove = await context.Teachers
+            .Where(a => a.Id == modelId)
+            .Include(a => a.User)
+            .FirstOrDefaultAsync();
+
+        if (teacherToRemove == null)
         {
             throw new ArgumentNullException("Teacher not found");
         }
+
+        context.Teachers.Remove(teacherToRemove);
+        if (teacherToRemove.User != null)
+        {
+            context.Users.Remove(teacherToRemove.User);
+        }
+        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Teacher>> GetAllAsync()

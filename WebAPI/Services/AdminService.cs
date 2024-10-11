@@ -24,6 +24,14 @@ public class AdminService : IAdminService
     {
         ArgumentNullException.ThrowIfNull(model);
 
+        var user = await context.Users.FindAsync(model.UserId);
+        if (user == null)
+        {
+            throw new ArgumentNullException("User not found");
+        }
+
+        model.User = user;
+
         await context.Admins.AddAsync(model);
         await context.SaveChangesAsync();
     }
@@ -32,16 +40,23 @@ public class AdminService : IAdminService
     {
         ArgumentNullException.ThrowIfNull(modelId);
 
-        var adminToRemove = await context.Admins.FindAsync(modelId);
-        if (adminToRemove != null)
-        {
-            context.Admins.Remove(adminToRemove);
-            await context.SaveChangesAsync();
-        }
-        else
+        var adminToRemove = await context.Admins
+            .Where(a => a.Id == modelId)
+            .Include(a => a.User)
+            .FirstOrDefaultAsync();
+
+        if (adminToRemove == null)
         {
             throw new ArgumentNullException("Admin not found");
         }
+
+        context.Admins.Remove(adminToRemove);
+        if (adminToRemove.User != null)
+        {
+            context.Users.Remove(adminToRemove.User);
+        }
+
+        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Admin>> GetAllAsync()
