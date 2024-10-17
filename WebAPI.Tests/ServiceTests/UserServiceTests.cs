@@ -10,7 +10,7 @@ namespace  WebAPI.Services.Tests;
 
 public class UserServiceTests
 {
-    private DemoEnglishSchoolContext GetInMemoryDbContext()
+    private static DemoEnglishSchoolContext GetInMemoryDbContext()
     {
         var options = new DbContextOptionsBuilder<DemoEnglishSchoolContext>()
             .UseInMemoryDatabase(databaseName: "DemoEnglishSchoolTest")
@@ -18,7 +18,7 @@ public class UserServiceTests
         return new DemoEnglishSchoolContext(options);
     }
 
-    private UserService GetUserService(DemoEnglishSchoolContext context)
+    private static UserService GetUserService(DemoEnglishSchoolContext context)
     {
         return new UserService(context);
     }

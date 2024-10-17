@@ -2,7 +2,7 @@
 
 ## Entities
 
-![Data Entities](/images/image.png)
+![Data Entities](/WebAPI/images/image.png)
 
 ## Route List:
 
@@ -32,4 +32,4 @@ PUT/api/admins/{id} - update admin
 DELETE/api/admins/{id} - delete admin
 ```
 
-Interface for visualisation and working with the implemented REST API is **Postman**
+Interface for visualisation and working with the implemented REST API is **Swagger**
