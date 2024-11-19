@@ -15,25 +15,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private readonly IStudentService studentService;
+        private readonly IStudentRepository studentRepository;
 
-        public StudentController(IStudentService studentService)
+        public StudentController(IStudentRepository studentRepository)
         {
-            this.studentService = studentService;
+            this.studentRepository = studentRepository;
         }
 
         // GET: api/student
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            return this.Ok(await studentService.GetAllAsync());
+            return this.Ok(await studentRepository.GetAllAsync());
         }
 
         // GET: api/student/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
-            var student = await studentService.GetByIdAsync(id);
+            var student = await studentRepository.GetByIdAsync(id);
 
             if (student == null)
             {
@@ -53,7 +53,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await studentService.UpdateAsync(student);
+            await studentRepository.UpdateAsync(student);
 
             return NoContent();
         }
@@ -63,7 +63,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<Student>> PostStudent(Student student)
         {
-            await studentService.AddAsync(student);
+            await studentRepository.AddAsync(student);
             return CreatedAtAction("GetStudent", new { id = student.Id }, student);
         }
 
@@ -71,7 +71,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            await studentService.DeleteAsync(id);
+            await studentRepository.DeleteAsync(id);
 
             return NoContent();
         }

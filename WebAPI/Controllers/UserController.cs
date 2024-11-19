@@ -15,25 +15,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService userService;
+        private readonly IUserRepository userRepository;
 
-        public UserController(IUserService userService)
+        public UserController(IUserRepository userRepository)
         {
-            this.userService = userService;
+            this.userRepository = userRepository;
         }
 
         // GET: api/user
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return this.Ok(await userService.GetAllAsync());
+            return this.Ok(await userRepository.GetAllAsync());
         }
 
         // GET: api/user/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await userService.GetByIdAsync(id);
+            var user = await userRepository.GetByIdAsync(id);
 
             if (user == null)
             {
@@ -53,7 +53,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await userService.UpdateAsync(user);
+            await userRepository.UpdateAsync(user);
 
             return NoContent();
         }
@@ -63,7 +63,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-            await userService.AddAsync(user);
+            await userRepository.AddAsync(user);
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
@@ -72,7 +72,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            await userService.DeleteAsync(id);
+            await userRepository .DeleteAsync(id);
 
             return NoContent();
         }

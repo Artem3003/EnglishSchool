@@ -7,6 +7,5 @@ namespace demo_english_school.Models;
 public class AbstractModel
 {
     [Key]
-    [Column(nameof(Id))]
     public int Id { get; set; }
 }

@@ -6,7 +6,7 @@ using demo_english_school.Models;
 
 namespace demo_english_school.Interfaces;
 
-public interface IStudentService : ICrud<Student>
+public interface IAdminRepository : ICrud<Admin>
 {
     
 }

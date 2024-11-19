@@ -9,11 +9,15 @@ namespace demo_english_school.Models;
 public class Teacher : AbstractModel
 {
     public string? Bio { get; set; }
+    
     public string? Qualification { get; set; }
+
     public int YearsOfExperience { get; set; }
+
     public string? Phone { get; set; }
+
     public string? Address { get; set; }
-    [ForeignKey(nameof(User))]
+
     public int UserId { get; set; }
 
     public User? User { get; set; }

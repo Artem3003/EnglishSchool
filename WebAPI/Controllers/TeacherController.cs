@@ -15,25 +15,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class TeacherController : ControllerBase
     {
-        private readonly ITeacherService teacherService;
+        private readonly ITeacherRepository teacherRepository;
 
-        public TeacherController(ITeacherService teacherService)
+        public TeacherController(ITeacherRepository teacherRepository)
         {
-            this.teacherService = teacherService;
+            this.teacherRepository = teacherRepository;
         }
 
         // GET: api/teacher
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Teacher>>> GetTeachers()
         {
-            return Ok(await teacherService.GetAllAsync());
+            return Ok(await teacherRepository.GetAllAsync());
         }
 
         // GET: api/teacher/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Teacher>> GetTeacher(int id)
         {
-            var teacher = await teacherService.GetByIdAsync(id);
+            var teacher = await teacherRepository.GetByIdAsync(id);
 
             if (teacher == null)
             {
@@ -53,7 +53,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await teacherService.UpdateAsync(teacher);
+            await teacherRepository.UpdateAsync(teacher);
 
             return NoContent();
         }
@@ -63,7 +63,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<Teacher>> PostTeacher(Teacher teacher)
         {
-            await teacherService.AddAsync(teacher);
+            await teacherRepository.AddAsync(teacher);
 
             return CreatedAtAction("GetTeacher", new { id = teacher.Id }, teacher);
         }
@@ -72,7 +72,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTeacher(int id)
         {
-            await teacherService.DeleteAsync(id);
+            await teacherRepository.DeleteAsync(id);
 
             return NoContent();
         }

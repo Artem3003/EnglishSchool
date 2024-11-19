@@ -9,7 +9,7 @@ namespace demo_english_school.Models;
 public class Admin : AbstractModel
 {
     public string? Role { get; set; }
-    [ForeignKey(nameof(User))]
+
     public int UserId { get; set; }
 
     public User? User { get; set; }

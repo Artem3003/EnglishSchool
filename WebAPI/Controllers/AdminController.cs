@@ -15,25 +15,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly IAdminService adminService;
+        private readonly IAdminRepository adminRepository;
 
-        public AdminController(IAdminService adminService)
+        public AdminController(IAdminRepository adminRepository)
         {
-            this.adminService = adminService;
+            this.adminRepository = adminRepository;
         }
 
         // GET: api/admin
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
         {
-            return Ok(await adminService.GetAllAsync());
+            return Ok(await adminRepository.GetAllAsync());
         }
 
         // GET: api/admin/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Admin>> GetAdmin(int id)
         {
-            var admin = await adminService.GetByIdAsync(id);
+            var admin = await adminRepository.GetByIdAsync(id);
 
             if (admin == null)
             {
@@ -53,7 +53,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await adminService.UpdateAsync(admin);
+            await adminRepository.UpdateAsync(admin);
 
             return NoContent();
         }
@@ -63,7 +63,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<Admin>> PostAdmin(Admin admin)
         {
-            await adminService.AddAsync(admin);
+            await adminRepository.AddAsync(admin);
 
             
 
@@ -74,7 +74,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdmin(int id)
         {
-            await adminService.DeleteAsync(id);
+            await adminRepository.DeleteAsync(id);
 
             return NoContent();
         }
