@@ -3,18 +3,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using demo_english_school.Data;
 using demo_english_school.Models;
-using demo_english_school.Services;
+using demo_english_school.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace WebAPI.Services.Tests;
 
-public class TeacherServiceTests
+public class TeacherRepositoryTests
 {
     private readonly DemoEnglishSchoolContext _context;
-    private readonly TeacherService _teacherService;
+    private readonly TeacherRepository _teacherRepository;
 
-    public TeacherServiceTests()
+    public TeacherRepositoryTests()
     {
         // Use in-memory database for tests
         var options = new DbContextOptionsBuilder<DemoEnglishSchoolContext>()
@@ -22,7 +22,7 @@ public class TeacherServiceTests
             .Options;
 
         _context = new DemoEnglishSchoolContext(options);
-        _teacherService = new TeacherService(_context);
+        _teacherRepository = new TeacherRepository(_context);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public class TeacherServiceTests
         };
 
         // Act
-        await _teacherService.AddAsync(teacher);
+        await _teacherRepository.AddAsync(teacher);
 
         // Assert
         var addedTeacher = await _context.Teachers.FindAsync(1);
@@ -63,7 +63,7 @@ public class TeacherServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        await _teacherService.DeleteAsync(1);
+        await _teacherRepository.DeleteAsync(1);
 
         // Assert
         var deletedTeacher = await _context.Teachers.FindAsync(1);
@@ -74,7 +74,7 @@ public class TeacherServiceTests
     public async Task DeleteAsync_Should_Throw_If_Teacher_Not_Found()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _teacherService.DeleteAsync(1));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _teacherRepository.DeleteAsync(1));
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class TeacherServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _teacherService.GetAllAsync();
+        var result = await _teacherRepository.GetAllAsync();
 
         // Assert
         Assert.Equal(2, result.Count());
@@ -103,7 +103,7 @@ public class TeacherServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _teacherService.GetByIdAsync(1);
+        var result = await _teacherRepository.GetByIdAsync(1);
 
         // Assert
         Assert.NotNull(result);
@@ -114,7 +114,7 @@ public class TeacherServiceTests
     public async Task GetByIdAsync_Should_Throw_If_Teacher_Not_Found()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _teacherService.GetByIdAsync(1));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _teacherRepository.GetByIdAsync(1));
     }
 
     [Fact]
@@ -146,7 +146,7 @@ public class TeacherServiceTests
         };
 
         // Act
-        await _teacherService.UpdateAsync(updatedTeacher);
+        await _teacherRepository.UpdateAsync(updatedTeacher);
 
         // Assert
         var teacherFromDb = await _context.Teachers.FindAsync(1);
@@ -163,7 +163,7 @@ public class TeacherServiceTests
         var updatedTeacher = new Teacher { Id = 1, Bio = "New Bio", Qualification = "MSc", UserId = 3 };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _teacherService.UpdateAsync(updatedTeacher));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _teacherRepository.UpdateAsync(updatedTeacher));
     }
 
     [Fact]
@@ -175,7 +175,7 @@ public class TeacherServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _teacherService.TeacherExistsAsync(1);
+        var result = await _teacherRepository.TeacherExistsAsync(1);
 
         // Assert
         Assert.True(result);
@@ -185,7 +185,7 @@ public class TeacherServiceTests
     public async Task TeacherExistsAsync_Should_Return_False_If_Teacher_Does_Not_Exist()
     {
         // Act
-        var result = await _teacherService.TeacherExistsAsync(1);
+        var result = await _teacherRepository.TeacherExistsAsync(1);
 
         // Assert
         Assert.False(result);

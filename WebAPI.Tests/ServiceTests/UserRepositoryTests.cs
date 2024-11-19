@@ -1,4 +1,4 @@
-using demo_english_school.Services;
+using demo_english_school.Repositories;
 using demo_english_school.Models;
 using demo_english_school.Data;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace  WebAPI.Services.Tests;
 
-public class UserServiceTests
+public class UserRepositoryTests
 {
     private static DemoEnglishSchoolContext GetInMemoryDbContext()
     {
@@ -18,9 +18,9 @@ public class UserServiceTests
         return new DemoEnglishSchoolContext(options);
     }
 
-    private static UserService GetUserService(DemoEnglishSchoolContext context)
+    private static UserRepository GetUserService(DemoEnglishSchoolContext context)
     {
-        return new UserService(context);
+        return new UserRepository(context);
     }
 
     [Fact]

@@ -3,18 +3,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using demo_english_school.Data;
 using demo_english_school.Models;
-using demo_english_school.Services;
+using demo_english_school.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace WebAPI.Services.Tests;
 
-public class StudentServiceTests
+public class StudentReposityryTests
 {
     private readonly DemoEnglishSchoolContext _context;
-    private readonly StudentService _studentService;
+    private readonly StudentRepository _studentRepository;
 
-    public StudentServiceTests()
+    public StudentReposityryTests()
     {
         // Using InMemory database with the same name as configured in the context
         var options = new DbContextOptionsBuilder<DemoEnglishSchoolContext>()
@@ -22,7 +22,7 @@ public class StudentServiceTests
             .Options;
 
         _context = new DemoEnglishSchoolContext(options);
-        _studentService = new StudentService(_context);
+        _studentRepository = new StudentRepository(_context);
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class StudentServiceTests
         var student = new Student { Id = 1, Address = "123 Main St", DateOfBirth = DateTime.Now.AddYears(-20), Phone = "1234567890", UserId = 1 };
 
         // Act
-        await _studentService.AddAsync(student);
+        await _studentRepository.AddAsync(student);
 
         // Assert
         var addedStudent = await _context.Students.FindAsync(1);
@@ -54,7 +54,7 @@ public class StudentServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        await _studentService.DeleteAsync(1);
+        await _studentRepository.DeleteAsync(1);
 
         // Assert
         var deletedStudent = await _context.Students.FindAsync(1);
@@ -65,7 +65,7 @@ public class StudentServiceTests
     public async Task DeleteAsync_Should_Throw_If_Student_Not_Found()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _studentService.DeleteAsync(1));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _studentRepository.DeleteAsync(1));
     }
 
     [Fact]
@@ -79,7 +79,7 @@ public class StudentServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _studentService.GetAllAsync();
+        var result = await _studentRepository.GetAllAsync();
 
         // Assert
         Assert.Equal(2, result.Count());
@@ -94,7 +94,7 @@ public class StudentServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _studentService.GetByIdAsync(1);
+        var result = await _studentRepository.GetByIdAsync(1);
 
         // Assert
         Assert.NotNull(result);
@@ -105,7 +105,7 @@ public class StudentServiceTests
     public async Task GetByIdAsync_Should_Throw_If_Student_Not_Found()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _studentService.GetByIdAsync(1));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _studentRepository.GetByIdAsync(1));
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class StudentServiceTests
         var updatedStudent = new Student { Id = 1, Address = "New Address", DateOfBirth = DateTime.Now.AddYears(-22), Phone = "9876543210", UserId = 3 };
 
         // Act
-        await _studentService.UpdateAsync(updatedStudent);
+        await _studentRepository.UpdateAsync(updatedStudent);
 
         // Assert
         var studentFromDb = await _context.Students.FindAsync(1);
@@ -135,7 +135,7 @@ public class StudentServiceTests
         var updatedStudent = new Student { Id = 1, Address = "New Address", DateOfBirth = DateTime.Now.AddYears(-22), Phone = "9876543210", UserId = 3 };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _studentService.UpdateAsync(updatedStudent));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _studentRepository.UpdateAsync(updatedStudent));
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class StudentServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _studentService.StudentExistsAsync(1);
+        var result = await _studentRepository.StudentExistsAsync(1);
 
         // Assert
         Assert.True(result);
@@ -157,7 +157,7 @@ public class StudentServiceTests
     public async Task StudentExistsAsync_Should_Return_False_If_Student_Does_Not_Exist()
     {
         // Act
-        var result = await _studentService.StudentExistsAsync(1);
+        var result = await _studentRepository.StudentExistsAsync(1);
 
         // Assert
         Assert.False(result);

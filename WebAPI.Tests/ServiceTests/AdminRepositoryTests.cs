@@ -3,18 +3,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using demo_english_school.Data;
 using demo_english_school.Models;
-using demo_english_school.Services;
+using demo_english_school.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace WebAPI.Services.Tests;
 
-public class AdminServiceTests
+public class AdminRepositoryTests
 {
     private readonly DemoEnglishSchoolContext _context;
-    private readonly AdminService _adminService;
+    private readonly AdminRepository _adminRepository;
 
-    public AdminServiceTests()
+    public AdminRepositoryTests()
     {
         // Using InMemory database with the same name as configured in the context
         var options = new DbContextOptionsBuilder<DemoEnglishSchoolContext>()
@@ -23,7 +23,7 @@ public class AdminServiceTests
 
         // Create a new context instance for each test
         _context = new DemoEnglishSchoolContext(options);
-        _adminService = new AdminService(_context);
+        _adminRepository = new AdminRepository(_context);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public class AdminServiceTests
         var admin = new Admin { Id = 1, Role = "Admin", UserId = 1 };
 
         // Act
-        await _adminService.AddAsync(admin);
+        await _adminRepository.AddAsync(admin);
 
         // Assert
         var addedAdmin = await _context.Admins.FindAsync(1);
@@ -55,7 +55,7 @@ public class AdminServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        await _adminService.DeleteAsync(1);
+        await _adminRepository.DeleteAsync(1);
 
         // Assert
         var deletedAdmin = await _context.Admins.FindAsync(1);
@@ -66,7 +66,7 @@ public class AdminServiceTests
     public async Task DeleteAsync_Should_Throw_If_Admin_Not_Found()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _adminService.DeleteAsync(1));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _adminRepository.DeleteAsync(1));
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class AdminServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _adminService.GetAllAsync();
+        var result = await _adminRepository.GetAllAsync();
 
         // Assert
         Assert.Equal(2, result.Count());
@@ -95,7 +95,7 @@ public class AdminServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _adminService.GetByIdAsync(1);
+        var result = await _adminRepository.GetByIdAsync(1);
 
         // Assert
         Assert.NotNull(result);
@@ -106,7 +106,7 @@ public class AdminServiceTests
     public async Task GetByIdAsync_Should_Throw_If_Admin_Not_Found()
     {
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _adminService.GetByIdAsync(1));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _adminRepository.GetByIdAsync(1));
     }
 
     [Fact]
@@ -120,7 +120,7 @@ public class AdminServiceTests
         var updatedAdmin = new Admin { Id = 1, Role = "NewRole", UserId = 3 };
 
         // Act
-        await _adminService.UpdateAsync(updatedAdmin);
+        await _adminRepository.UpdateAsync(updatedAdmin);
 
         // Assert
         var adminFromDb = await _context.Admins.FindAsync(1);
@@ -136,7 +136,7 @@ public class AdminServiceTests
         var updatedAdmin = new Admin { Id = 1, Role = "NewRole", UserId = 3 };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _adminService.UpdateAsync(updatedAdmin));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _adminRepository.UpdateAsync(updatedAdmin));
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class AdminServiceTests
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _adminService.AdminExistsAsync(1);
+        var result = await _adminRepository.AdminExistsAsync(1);
 
         // Assert
         Assert.True(result);
@@ -158,7 +158,7 @@ public class AdminServiceTests
     public async Task AdminExistsAsync_Should_Return_False_If_Admin_Does_Not_Exist()
     {
         // Act
-        var result = await _adminService.AdminExistsAsync(1);
+        var result = await _adminRepository.AdminExistsAsync(1);
 
         // Assert
         Assert.False(result);
