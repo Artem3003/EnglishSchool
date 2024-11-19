@@ -33,3 +33,9 @@ DELETE/api/admins/{id} - delete admin
 ```
 
 Interface for visualisation and working with the implemented REST API is **Swagger**
+
+## Database Configuration
+
+This project uses a SQL Server database to store and manage data for users, students, teachers, and admins.
+
+Connection String: "DemoEnglishSchoolDb": "Server=(localdb)\\mssqllocaldb;Database=Context-4e9e921b-801a-43f4-92a5-4629ade7b72c;Trusted_Connection=True;MultipleActiveResultSets=true"
