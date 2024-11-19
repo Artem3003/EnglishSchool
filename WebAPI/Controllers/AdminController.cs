@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using demo_english_school.Data;
 using demo_english_school.Models;
 using demo_english_school.Interfaces;
+using WebAPI.Interfaces;
 
 namespace demo_english_school.Controllers
 {
@@ -15,25 +16,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly IAdminRepository adminRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public AdminController(IAdminRepository adminRepository)
+        public AdminController(IUnitOfWork unitOfWork)
         {
-            this.adminRepository = adminRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         // GET: api/admin
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Admin>>> GetAdmins()
         {
-            return Ok(await adminRepository.GetAllAsync());
+            return Ok(await unitOfWork.AdminRepository.GetAllAsync());
         }
 
         // GET: api/admin/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Admin>> GetAdmin(int id)
         {
-            var admin = await adminRepository.GetByIdAsync(id);
+            var admin = await unitOfWork.AdminRepository.GetByIdAsync(id);
 
             if (admin == null)
             {
@@ -53,7 +54,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await adminRepository.UpdateAsync(admin);
+            await unitOfWork.AdminRepository.UpdateAsync(admin);
 
             return NoContent();
         }
@@ -63,7 +64,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<Admin>> PostAdmin(Admin admin)
         {
-            await adminRepository.AddAsync(admin);
+            await unitOfWork.AdminRepository.AddAsync(admin);
 
             
 
@@ -74,7 +75,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdmin(int id)
         {
-            await adminRepository.DeleteAsync(id);
+            await unitOfWork.AdminRepository.DeleteAsync(id);
 
             return NoContent();
         }

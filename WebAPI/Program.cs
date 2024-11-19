@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using WebAPI.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -21,10 +22,7 @@ builder.Services.AddFluentValidationAutoValidation()
     .AddValidatorsFromAssemblyContaining<StudentValidator>()
     .AddValidatorsFromAssemblyContaining<AdminValidator>();
 
-builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IStudentRepository, StudentRepository>();
-builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using demo_english_school.Data;
 using demo_english_school.Models;
 using demo_english_school.Interfaces;
+using WebAPI.Interfaces;
 
 namespace demo_english_school.Controllers
 {
@@ -15,25 +16,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private readonly IStudentRepository studentRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public StudentController(IStudentRepository studentRepository)
+        public StudentController(IUnitOfWork unitOfWork)
         {
-            this.studentRepository = studentRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         // GET: api/student
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
         {
-            return this.Ok(await studentRepository.GetAllAsync());
+            return this.Ok(await unitOfWork.StudentRepository.GetAllAsync());
         }
 
         // GET: api/student/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Student>> GetStudent(int id)
         {
-            var student = await studentRepository.GetByIdAsync(id);
+            var student = await unitOfWork.StudentRepository.GetByIdAsync(id);
 
             if (student == null)
             {
@@ -53,7 +54,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await studentRepository.UpdateAsync(student);
+            await unitOfWork.StudentRepository.UpdateAsync(student);
 
             return NoContent();
         }
@@ -63,7 +64,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<Student>> PostStudent(Student student)
         {
-            await studentRepository.AddAsync(student);
+            await unitOfWork.StudentRepository.AddAsync(student);
             return CreatedAtAction("GetStudent", new { id = student.Id }, student);
         }
 
@@ -71,7 +72,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            await studentRepository.DeleteAsync(id);
+            await unitOfWork.StudentRepository.DeleteAsync(id);
 
             return NoContent();
         }

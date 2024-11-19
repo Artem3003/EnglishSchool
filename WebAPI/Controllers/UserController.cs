@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using demo_english_school.Data;
 using demo_english_school.Models;
 using demo_english_school.Interfaces;
+using WebAPI.Interfaces;
 
 namespace demo_english_school.Controllers
 {
@@ -15,25 +16,25 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserRepository userRepository;
+        private readonly IUnitOfWork unitOfWork;
 
-        public UserController(IUserRepository userRepository)
+        public UserController(IUnitOfWork unitOfWork)
         {
-            this.userRepository = userRepository;
+            this.unitOfWork = unitOfWork;
         }
 
         // GET: api/user
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return this.Ok(await userRepository.GetAllAsync());
+            return this.Ok(await unitOfWork.UserRepository.GetAllAsync());
         }
 
         // GET: api/user/5
         [HttpGet("{id}")]
         public async Task<ActionResult<User>> GetUser(int id)
         {
-            var user = await userRepository.GetByIdAsync(id);
+            var user = await unitOfWork.UserRepository.GetByIdAsync(id);
 
             if (user == null)
             {
@@ -53,7 +54,7 @@ namespace demo_english_school.Controllers
                 return BadRequest();
             }
 
-            await userRepository.UpdateAsync(user);
+            await unitOfWork.UserRepository.UpdateAsync(user);
 
             return NoContent();
         }
@@ -63,7 +64,7 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> PostUser(User user)
         {
-            await userRepository.AddAsync(user);
+            await unitOfWork.UserRepository.AddAsync(user);
 
             return CreatedAtAction("GetUser", new { id = user.Id }, user);
         }
@@ -72,7 +73,7 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            await userRepository .DeleteAsync(id);
+            await unitOfWork.UserRepository.DeleteAsync(id);
 
             return NoContent();
         }
