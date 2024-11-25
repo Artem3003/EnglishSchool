@@ -11,6 +11,9 @@ using demo_english_school.Interfaces;
 using WebAPI.Interfaces;
 using AutoMapper;
 using demo_english_school.Dtos;
+using demo_english_school.Validator;
+using System.ComponentModel.DataAnnotations;
+using FluentValidation;
 
 namespace demo_english_school.Controllers
 {
@@ -20,11 +23,13 @@ namespace demo_english_school.Controllers
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
+        private readonly IValidator<TeacherCreateDto> validator;
 
-        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper)
+        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<TeacherCreateDto> validator)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
+            this.validator = validator;
         }
 
         // GET: api/teacher
@@ -75,6 +80,12 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<TeacherCreateDto>> PostTeacher(TeacherCreateDto teacher)
         {
+            var result = await validator.ValidateAsync(teacher);
+            if (!result.IsValid)
+            {
+                return BadRequest(result.Errors);
+            }
+
             var teacherDto = this.mapper.Map<Teacher>(teacher);
             await unitOfWork.TeacherRepository.AddAsync(teacherDto);
             await unitOfWork.SaveAsync();

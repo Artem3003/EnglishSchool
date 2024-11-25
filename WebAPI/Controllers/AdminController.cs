@@ -11,6 +11,7 @@ using demo_english_school.Interfaces;
 using WebAPI.Interfaces;
 using AutoMapper;
 using demo_english_school.Dtos;
+using FluentValidation;
 
 namespace demo_english_school.Controllers
 {
@@ -20,11 +21,13 @@ namespace demo_english_school.Controllers
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
+        private readonly IValidator<AdminCreateDto> validator;
 
-        public AdminController(IUnitOfWork unitOfWork, IMapper mapper)
+        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
+            this.validator = validator;
         }
 
         // GET: api/admin
@@ -74,6 +77,12 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<AdminCreateDto>> PostAdmin(AdminCreateDto admin)
         {
+            var validationResult = this.validator.Validate(admin);  
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
+
             var adminDto = this.mapper.Map<Admin>(admin);
             await unitOfWork.AdminRepository.AddAsync(adminDto);
             await unitOfWork.SaveAsync();
