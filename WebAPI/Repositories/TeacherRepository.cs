@@ -25,7 +25,6 @@ public class TeacherRepository : ITeacherRepository
         ArgumentNullException.ThrowIfNull(model);
 
         await context.Teachers.AddAsync(model);
-        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int modelId)
@@ -47,17 +46,16 @@ public class TeacherRepository : ITeacherRepository
         {
             context.Users.Remove(teacherToRemove.User);
         }
-        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Teacher>> GetAllAsync()
     {
-        return await context.Teachers.ToListAsync();
+        return await context.Teachers.Include(t => t.User).ToListAsync();
     }
 
     public async Task<Teacher> GetByIdAsync(int id)
     {
-        var teacher = await context.Teachers.FindAsync(id);
+        var teacher = await context.Teachers.Include(t => t.User).FirstOrDefaultAsync(t => t.Id == id);
         if (teacher != null)
         {
             return teacher;
@@ -82,8 +80,17 @@ public class TeacherRepository : ITeacherRepository
             teacherToUpdate.Address = model.Address;
             teacherToUpdate.UserId = model.UserId;
 
+            if (teacherToUpdate.User != null && model.User != null)
+            {
+                teacherToUpdate.User.Username = model.User.Username;
+                teacherToUpdate.User.Password = model.User.Password;
+                teacherToUpdate.User.Email = model.User.Email;
+                teacherToUpdate.User.FullName = model.User.FullName;
+
+                context.Users.Update(teacherToUpdate.User);
+            }
+
             context.Teachers.Update(teacherToUpdate);
-            await context.SaveChangesAsync();
         }
         else
         {

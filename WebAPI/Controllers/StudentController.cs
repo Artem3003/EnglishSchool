@@ -9,6 +9,9 @@ using demo_english_school.Data;
 using demo_english_school.Models;
 using demo_english_school.Interfaces;
 using WebAPI.Interfaces;
+using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
+using AutoMapper;
+using demo_english_school.Dtos;
 
 namespace demo_english_school.Controllers
 {
@@ -17,44 +20,51 @@ namespace demo_english_school.Controllers
     public class StudentController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper mapper;
 
-        public StudentController(IUnitOfWork unitOfWork)
+        public StudentController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
         // GET: api/student
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
-            return this.Ok(await unitOfWork.StudentRepository.GetAllAsync());
+            var students = await unitOfWork.StudentRepository.GetAllAsync();
+            var studentsDto = this.mapper.Map<IEnumerable<StudentDto>>(students);
+
+            return Ok(studentsDto);
         }
 
         // GET: api/student/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Student>> GetStudent(int id)
+        public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
             var student = await unitOfWork.StudentRepository.GetByIdAsync(id);
-
             if (student == null)
             {
                 return NotFound();
             }
+            var studentDto = this.mapper.Map<StudentDto>(student);
 
-            return student;
+            return studentDto;
         }
 
         // PUT: api/student/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutStudent(int id, Student student)
+        public async Task<IActionResult> PutStudent(int id, StudentUpdateDto student)
         {
-            if (id != student.Id)
+            var studentDto = this.mapper.Map<Student>(student);
+            if (id != studentDto.Id)
             {
                 return BadRequest();
             }
 
-            await unitOfWork.StudentRepository.UpdateAsync(student);
+            await unitOfWork.StudentRepository.UpdateAsync(studentDto);
+            await unitOfWork.SaveAsync();
 
             return NoContent();
         }
@@ -62,10 +72,12 @@ namespace demo_english_school.Controllers
         // POST: api/student
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Student>> PostStudent(Student student)
+        public async Task<ActionResult<StudentCreateDto>> PostStudent(StudentCreateDto student)
         {
-            await unitOfWork.StudentRepository.AddAsync(student);
-            return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+            var studentDto = this.mapper.Map<Student>(student);
+            await unitOfWork.StudentRepository.AddAsync(studentDto);
+            await unitOfWork.SaveAsync();
+            return CreatedAtAction("GetStudent", new { id = studentDto.Id }, studentDto);
         }
 
         // DELETE: api/student/5
@@ -73,6 +85,7 @@ namespace demo_english_school.Controllers
         public async Task<IActionResult> DeleteStudent(int id)
         {
             await unitOfWork.StudentRepository.DeleteAsync(id);
+            await unitOfWork.SaveAsync();
 
             return NoContent();
         }

@@ -9,6 +9,8 @@ using demo_english_school.Data;
 using demo_english_school.Models;
 using demo_english_school.Interfaces;
 using WebAPI.Interfaces;
+using AutoMapper;
+using demo_english_school.Dtos;
 
 namespace demo_english_school.Controllers
 {
@@ -17,22 +19,27 @@ namespace demo_english_school.Controllers
     public class TeacherController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper mapper;
 
-        public TeacherController(IUnitOfWork unitOfWork)
+        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
         // GET: api/teacher
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Teacher>>> GetTeachers()
+        public async Task<ActionResult<IEnumerable<TeacherDto>>> GetTeachers()
         {
-            return Ok(await unitOfWork.TeacherRepository.GetAllAsync());
+            var teachers = await unitOfWork.TeacherRepository.GetAllAsync();
+            var teachersDto = this.mapper.Map<IEnumerable<TeacherDto>>(teachers);
+
+            return Ok(teachersDto);
         }
 
         // GET: api/teacher/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Teacher>> GetTeacher(int id)
+        public async Task<ActionResult<TeacherDto>> GetTeacher(int id)
         {
             var teacher = await unitOfWork.TeacherRepository.GetByIdAsync(id);
 
@@ -41,20 +48,24 @@ namespace demo_english_school.Controllers
                 return NotFound();
             }
 
-            return teacher;
+            var teacherDto = this.mapper.Map<TeacherDto>(teacher);
+
+            return teacherDto;
         }
 
         // PUT: api/teacher/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTeacher(int id, Teacher teacher)
+        public async Task<IActionResult> PutTeacher(int id, TeacherUpdateDto teacher)
         {
-            if (id != teacher.Id)
+            var teacherDto = this.mapper.Map<Teacher>(teacher);
+            if (id != teacherDto.Id)
             {
                 return BadRequest();
             }
 
-            await unitOfWork.TeacherRepository.UpdateAsync(teacher);
+            await unitOfWork.TeacherRepository.UpdateAsync(teacherDto);
+            await unitOfWork.SaveAsync();
 
             return NoContent();
         }
@@ -62,11 +73,13 @@ namespace demo_english_school.Controllers
         // POST: api/teacher
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Teacher>> PostTeacher(Teacher teacher)
+        public async Task<ActionResult<TeacherCreateDto>> PostTeacher(TeacherCreateDto teacher)
         {
-            await unitOfWork.TeacherRepository.AddAsync(teacher);
+            var teacherDto = this.mapper.Map<Teacher>(teacher);
+            await unitOfWork.TeacherRepository.AddAsync(teacherDto);
+            await unitOfWork.SaveAsync();
 
-            return CreatedAtAction("GetTeacher", new { id = teacher.Id }, teacher);
+            return CreatedAtAction("GetTeacher", new { id = teacherDto.Id }, teacherDto);
         }
 
         // DELETE: api/teacher/5
@@ -74,6 +87,7 @@ namespace demo_english_school.Controllers
         public async Task<IActionResult> DeleteTeacher(int id)
         {
             await unitOfWork.TeacherRepository.DeleteAsync(id);
+            await unitOfWork.SaveAsync();
 
             return NoContent();
         }

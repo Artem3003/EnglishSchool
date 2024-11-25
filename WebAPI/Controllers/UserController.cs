@@ -9,6 +9,8 @@ using demo_english_school.Data;
 using demo_english_school.Models;
 using demo_english_school.Interfaces;
 using WebAPI.Interfaces;
+using AutoMapper;
+using demo_english_school.Dtos;
 
 namespace demo_english_school.Controllers
 {
@@ -17,22 +19,27 @@ namespace demo_english_school.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly IMapper mapper;
 
-        public UserController(IUnitOfWork unitOfWork)
+        public UserController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
         // GET: api/user
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers()
         {
-            return this.Ok(await unitOfWork.UserRepository.GetAllAsync());
+            var users = await unitOfWork.UserRepository.GetAllAsync();
+            var usersDto = this.mapper.Map<IEnumerable<UserDto>>(users);
+
+            return Ok(usersDto);
         }
 
         // GET: api/user/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(int id)
+        public async Task<ActionResult<UserDto>> GetUser(int id)
         {
             var user = await unitOfWork.UserRepository.GetByIdAsync(id);
 
@@ -41,7 +48,9 @@ namespace demo_english_school.Controllers
                 return NotFound();
             }
 
-            return user;
+            var userDto = this.mapper.Map<UserDto>(user);
+
+            return userDto;
         }
 
         // PUT: api/user/5
@@ -55,6 +64,7 @@ namespace demo_english_school.Controllers
             }
 
             await unitOfWork.UserRepository.UpdateAsync(user);
+            await unitOfWork.SaveAsync();
 
             return NoContent();
         }
@@ -62,11 +72,13 @@ namespace demo_english_school.Controllers
         // POST: api/user
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<User>> PostUser(User user)
+        public async Task<ActionResult<UserCreateDto>> PostUser(UserCreateDto user)
         {
-            await unitOfWork.UserRepository.AddAsync(user);
+            var userDto = this.mapper.Map<User>(user);
+            await unitOfWork.UserRepository.AddAsync(userDto);
+            await unitOfWork.SaveAsync();
 
-            return CreatedAtAction("GetUser", new { id = user.Id }, user);
+            return CreatedAtAction("GetUser", new { id = user.Id }, userDto);
         }
 
         // DELETE: api/user/5
@@ -74,6 +86,7 @@ namespace demo_english_school.Controllers
         public async Task<IActionResult> DeleteUser(int id)
         {
             await unitOfWork.UserRepository.DeleteAsync(id);
+            await unitOfWork.SaveAsync();
 
             return NoContent();
         }

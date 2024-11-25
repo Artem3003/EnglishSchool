@@ -53,7 +53,8 @@ public static class SeedData
                         .RuleFor(t => t.YearsOfExperience, f => f.Random.Number(1, 10))
                         .RuleFor(t => t.Phone, f => f.Phone.PhoneNumber())
                         .RuleFor(t => t.Address, f => f.Address.FullAddress())
-                        .RuleFor(t => t.UserId, f => f.PickRandom(teacherUserIds));
+                        .RuleFor(t => t.UserId, f => f.PickRandom(teacherUserIds))
+                        .FinishWith((f, t) => t.User = context.Users.Find(t.UserId));
 
                     context.Teachers.AddRange(teacherFaker.Generate(3));
                 }
@@ -65,7 +66,8 @@ public static class SeedData
                         .RuleFor(s => s.DateOfBirth, f => f.Date.Past())
                         .RuleFor(s => s.Phone, f => f.Phone.PhoneNumber())
                         .RuleFor(s => s.Address, f => f.Address.FullAddress())
-                        .RuleFor(s => s.UserId, f => f.PickRandom(studentUserIds));
+                        .RuleFor(s => s.UserId, f => f.PickRandom(studentUserIds))
+                        .FinishWith((f, s) => s.User = context.Users.Find(s.UserId));
 
                     context.Students.AddRange(studentFaker.Generate(5));
                 }

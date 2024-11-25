@@ -25,7 +25,6 @@ public class StudentRepository : IStudentRepository
         ArgumentNullException.ThrowIfNull(model);
 
         await context.Students.AddAsync(model);
-        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int modelId)
@@ -47,17 +46,16 @@ public class StudentRepository : IStudentRepository
         {
             context.Users.Remove(studentToRemove.User);
         }
-        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Student>> GetAllAsync()
     {
-        return await context.Students.ToListAsync();
+        return await context.Students.Include(s => s.User).ToListAsync();
     }
 
     public async Task<Student> GetByIdAsync(int id)
     {
-        var student = await context.Students.FindAsync(id);
+        var student = await context.Students.Include(s => s.User).FirstOrDefaultAsync(s => s.Id == id);
         if (student != null)
         {
             return student;
@@ -80,8 +78,17 @@ public class StudentRepository : IStudentRepository
             studentToUpdate.Phone = model.Phone;
             studentToUpdate.UserId = model.UserId;
 
+            if (studentToUpdate.User != null && model.User != null)
+            {
+                studentToUpdate.User.Username = model.User.Username;
+                studentToUpdate.User.Password = model.User.Password;
+                studentToUpdate.User.Email = model.User.Email;
+                studentToUpdate.User.FullName = model.User.FullName;
+
+                context.Users.Update(studentToUpdate.User);
+            }
+
             context.Students.Update(studentToUpdate);
-            await context.SaveChangesAsync();
         }
         else
         {

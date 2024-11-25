@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using demo_english_school.Data;
 using demo_english_school.Interfaces;
 using demo_english_school.Models;
@@ -12,6 +13,7 @@ namespace demo_english_school.Repositories;
 public class AdminRepository : IAdminRepository
 {
     private readonly DemoEnglishSchoolContext context;
+
     public AdminRepository()
     {
         this.context = new DemoEnglishSchoolContext();
@@ -24,16 +26,7 @@ public class AdminRepository : IAdminRepository
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var user = await context.Users.FindAsync(model.UserId);
-        if (user == null)
-        {
-            throw new ArgumentNullException("User not found");
-        }
-
-        model.User = user;
-
         await context.Admins.AddAsync(model);
-        await context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int modelId)
@@ -55,18 +48,16 @@ public class AdminRepository : IAdminRepository
         {
             context.Users.Remove(adminToRemove.User);
         }
-
-        await context.SaveChangesAsync();
     }
 
     public async Task<IEnumerable<Admin>> GetAllAsync()
     {
-        return await context.Admins.ToListAsync();
+        return await context.Admins.Include(a => a.User).ToListAsync();
     }
 
     public async Task<Admin> GetByIdAsync(int id)
     {
-        var admin = await context.Admins.FindAsync(id);
+        var admin = await context.Admins.Include(a => a.User).FirstOrDefaultAsync(a => a.Id == id);
         if (admin != null)
         {
             return admin;
@@ -81,14 +72,24 @@ public class AdminRepository : IAdminRepository
     {
         ArgumentNullException.ThrowIfNull(model);
 
-        var adminToUpdate = await context.Admins.FindAsync(model.Id);
+        var adminToUpdate = await context.Admins.Include(u => u.User).FirstOrDefaultAsync(a => a.Id == model.Id);
         if (adminToUpdate != null)
         {
             adminToUpdate.Role = model.Role;
             adminToUpdate.UserId = model.UserId;
+            adminToUpdate.User = model.User;
+
+            if (adminToUpdate.User != null && model.User != null)
+            {
+                adminToUpdate.User.Username = model.User.Username;
+                adminToUpdate.User.Password = model.User.Password;
+                adminToUpdate.User.Email = model.User.Email;
+                adminToUpdate.User.FullName = model.User.FullName;
+
+                context.Users.Update(adminToUpdate.User);
+            }
 
             context.Admins.Update(adminToUpdate);
-            await context.SaveChangesAsync();
         }
         else
         {

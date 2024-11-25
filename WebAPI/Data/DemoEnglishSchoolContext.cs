@@ -25,21 +25,24 @@ public class DemoEnglishSchoolContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<User>()
+            .HasKey(u => u.Id);
+
         modelBuilder.Entity<Student>()
             .HasOne(s => s.User)
-            .WithOne()
+            .WithOne(u => u.Student)
             .HasForeignKey<Student>(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Teacher>()
             .HasOne(t => t.User)
-            .WithOne()
+            .WithOne(u => u.Teacher)
             .HasForeignKey<Teacher>(t => t.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<Admin>()
             .HasOne(a => a.User)
-            .WithOne()
+            .WithOne(u => u.Admin)
             .HasForeignKey<Admin>(a => a.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 

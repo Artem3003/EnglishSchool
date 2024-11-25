@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using WebAPI.Interfaces;
+using demo_english_school.Automapper;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -14,6 +15,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DemoEnglishSchoolContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DemoEnglishSchoolDb")));
+
+builder.Services.AddAutoMapper(typeof(AutomapperProfile));
 
 builder.Services.AddFluentValidationAutoValidation()
     .AddFluentValidationClientsideAdapters()

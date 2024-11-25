@@ -6,6 +6,5 @@ namespace demo_english_school.Models;
 
 public class AbstractModel
 {
-    [Key]
     public int Id { get; set; }
 }
