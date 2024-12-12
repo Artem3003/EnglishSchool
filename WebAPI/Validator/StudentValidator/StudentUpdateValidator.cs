@@ -1,14 +1,14 @@
+using demo_english_school.Dtos;
 using demo_english_school.Models;
 using FluentValidation;
 using System.Text.RegularExpressions;
 
 namespace demo_english_school.Validator;
 
-public class StudentValidator : AbstractValidator<Student>
+public class StudentUpdateValidator : AbstractValidator<StudentUpdateDto>
 {
-    public StudentValidator()
+    public StudentUpdateValidator()
     {
-        RuleFor(Student => Student.Id).NotNull().WithMessage("Student Id is required.");
         RuleFor(Student => Student.DateOfBirth).NotNull().WithMessage("Date of birth is required.");
         RuleFor(p => p.Phone)
             .NotEmpty()
@@ -17,7 +17,5 @@ public class StudentValidator : AbstractValidator<Student>
             .MaximumLength(20).WithMessage("PhoneNumber must not exceed 50 characters.")
             .Matches(new Regex(@"((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}")).WithMessage("PhoneNumber not valid");
         RuleFor(Student => Student.Address).NotNull().NotEmpty().WithMessage("Address is required.");
-        RuleFor(Student => Student.UserId).NotNull().WithMessage("User Id is required.");
-        RuleFor(Student => Student.User).NotNull().SetValidator(new UserValidator() as IValidator<User?>);
     }
 }

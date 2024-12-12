@@ -1,11 +1,12 @@
+using demo_english_school.Dtos;
 using demo_english_school.Models;
 using FluentValidation;
 
 namespace demo_english_school.Validator;
 
-public class UserValidator : AbstractValidator<User>
+public class UserUpdateValidator : AbstractValidator<UserUpdateDto>
 {
-    public UserValidator()
+    public UserUpdateValidator()
     {
         RuleFor(User => User.Username).NotNull().NotEmpty().WithMessage("Username is required.");
         RuleFor(p => p.Password).NotEmpty().WithMessage("Your password cannot be empty")

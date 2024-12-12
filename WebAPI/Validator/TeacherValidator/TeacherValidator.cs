@@ -1,10 +1,11 @@
 using System.Text.RegularExpressions;
+using demo_english_school.Dtos;
 using demo_english_school.Models;
 using FluentValidation;
 
 namespace demo_english_school.Validator;
 
-public class TeacherValidator : AbstractValidator<Teacher>
+public class TeacherValidator : AbstractValidator<TeacherDto>
 {
     public TeacherValidator()
     {
@@ -20,7 +21,5 @@ public class TeacherValidator : AbstractValidator<Teacher>
             .Matches(new Regex(@"((\(\d{3}\) ?)|(\d{3}-))?\d{3}-\d{4}")).WithMessage("PhoneNumber not valid");
         RuleFor(t => t.Address).NotNull().NotEmpty();
         RuleFor(t => t.UserId).NotNull();
-        RuleFor(t => t.User).NotNull();
-        RuleFor(t => t.User).SetValidator(new UserValidator() as IValidator<User?>);
     }
 }

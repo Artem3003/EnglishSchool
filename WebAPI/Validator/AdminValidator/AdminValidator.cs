@@ -1,9 +1,10 @@
 using demo_english_school.Models;
 using FluentValidation;
+using demo_english_school.Dtos;
 
 namespace demo_english_school.Validator;
 
-public class AdminValidator : AbstractValidator<Admin>
+public class AdminValidator : AbstractValidator<AdminDto>
 {
     public AdminValidator()
     {
