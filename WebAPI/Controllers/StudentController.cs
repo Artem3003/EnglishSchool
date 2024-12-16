@@ -23,12 +23,14 @@ namespace demo_english_school.Controllers
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly IValidator<StudentCreateDto> validator;
+        private readonly ILogger<StudentController> logger;
 
-        public StudentController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<StudentCreateDto> validator)
+        public StudentController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<StudentCreateDto> validator, ILogger<StudentController> logger)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
+            this.logger = logger;
         }
 
         // GET: api/student
@@ -38,6 +40,7 @@ namespace demo_english_school.Controllers
             var students = await unitOfWork.StudentRepository.GetAllAsync();
             var studentsDto = this.mapper.Map<IEnumerable<StudentDto>>(students);
 
+            logger.LogInformation("Get all students");
             return Ok(studentsDto);
         }
 
@@ -48,11 +51,13 @@ namespace demo_english_school.Controllers
             var student = await unitOfWork.StudentRepository.GetByIdAsync(id);
             if (student == null)
             {
+                logger.LogWarning("Student not found");
                 return NotFound();
             }
             var studentDto = this.mapper.Map<StudentDto>(student);
 
-            return studentDto;
+            logger.LogInformation("Get student by id");
+            return Ok(studentDto);
         }
 
         // PUT: api/student/5
@@ -63,12 +68,14 @@ namespace demo_english_school.Controllers
             var studentDto = this.mapper.Map<Student>(student);
             if (id != studentDto.Id)
             {
+                logger.LogWarning("Id not match");
                 return BadRequest();
             }
 
             await unitOfWork.StudentRepository.UpdateAsync(studentDto);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Update student");
             return NoContent();
         }
 
@@ -80,12 +87,15 @@ namespace demo_english_school.Controllers
             var result = await validator.ValidateAsync(student);
             if (!result.IsValid)
             {
+                logger.LogWarning("Validation error");
                 return BadRequest(result.Errors);
             }
 
             var studentDto = this.mapper.Map<Student>(student);
             await unitOfWork.StudentRepository.AddAsync(studentDto);
             await unitOfWork.SaveAsync();
+
+            logger.LogInformation("Create student");
             return CreatedAtAction("GetStudent", new { id = studentDto.Id }, studentDto);
         }
 
@@ -96,6 +106,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.StudentRepository.DeleteAsync(id);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Delete student");
             return NoContent();
         }
     }

@@ -23,12 +23,14 @@ namespace demo_english_school.Controllers
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly IValidator<UserCreateDto> validator;
+        private readonly ILogger<UserController> logger;
 
-        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator)
+        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
+            this.logger = logger;
         }
 
         // GET: api/user
@@ -38,6 +40,7 @@ namespace demo_english_school.Controllers
             var users = await unitOfWork.UserRepository.GetAllAsync();
             var usersDto = this.mapper.Map<IEnumerable<UserDto>>(users);
 
+            logger.LogInformation("Get all users");
             return Ok(usersDto);
         }
 
@@ -49,12 +52,14 @@ namespace demo_english_school.Controllers
 
             if (user == null)
             {
+                logger.LogWarning("User not found");
                 return NotFound();
             }
 
             var userDto = this.mapper.Map<UserDto>(user);
 
-            return userDto;
+            logger.LogInformation("Get user by id");
+            return Ok(userDto);
         }
 
         // PUT: api/user/5
@@ -64,12 +69,14 @@ namespace demo_english_school.Controllers
         {
             if (id != user.Id)
             {
+                logger.LogWarning("Id not match");
                 return BadRequest();
             }
 
             await unitOfWork.UserRepository.UpdateAsync(user);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Update user");
             return NoContent();
         }
 
@@ -81,6 +88,7 @@ namespace demo_english_school.Controllers
             var result = await validator.ValidateAsync(user);
             if (!result.IsValid)
             {
+                logger.LogWarning("Validation error");
                 return BadRequest(result.Errors);
             }
 
@@ -88,6 +96,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.UserRepository.AddAsync(userDto);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Create user");
             return CreatedAtAction("GetUser", new { id = user.Id }, userDto);
         }
 
@@ -98,6 +107,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.UserRepository.DeleteAsync(id);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Delete user");
             return NoContent();
         }
     }

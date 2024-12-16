@@ -24,12 +24,14 @@ namespace demo_english_school.Controllers
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly IValidator<TeacherCreateDto> validator;
+        private readonly ILogger<TeacherController> logger;
 
-        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<TeacherCreateDto> validator)
+        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<TeacherCreateDto> validator, ILogger<TeacherController> logger)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
+            this.logger = logger;
         }
 
         // GET: api/teacher
@@ -39,6 +41,7 @@ namespace demo_english_school.Controllers
             var teachers = await unitOfWork.TeacherRepository.GetAllAsync();
             var teachersDto = this.mapper.Map<IEnumerable<TeacherDto>>(teachers);
 
+            logger.LogInformation("Get all teachers");
             return Ok(teachersDto);
         }
 
@@ -50,12 +53,14 @@ namespace demo_english_school.Controllers
 
             if (teacher == null)
             {
+                logger.LogWarning("Teacher not found");
                 return NotFound();
             }
 
             var teacherDto = this.mapper.Map<TeacherDto>(teacher);
 
-            return teacherDto;
+            logger.LogInformation("Get teacher by id");
+            return Ok(teacherDto);
         }
 
         // PUT: api/teacher/5
@@ -66,12 +71,14 @@ namespace demo_english_school.Controllers
             var teacherDto = this.mapper.Map<Teacher>(teacher);
             if (id != teacherDto.Id)
             {
+                logger.LogWarning("Id not match");
                 return BadRequest();
             }
 
             await unitOfWork.TeacherRepository.UpdateAsync(teacherDto);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Update teacher");
             return NoContent();
         }
 
@@ -83,6 +90,7 @@ namespace demo_english_school.Controllers
             var result = await validator.ValidateAsync(teacher);
             if (!result.IsValid)
             {
+                logger.LogWarning("Validation error");
                 return BadRequest(result.Errors);
             }
 
@@ -90,6 +98,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.TeacherRepository.AddAsync(teacherDto);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Create teacher");
             return CreatedAtAction("GetTeacher", new { id = teacherDto.Id }, teacherDto);
         }
 
@@ -100,6 +109,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.TeacherRepository.DeleteAsync(id);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Delete teacher");
             return NoContent();
         }
     }

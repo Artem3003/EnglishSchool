@@ -22,12 +22,14 @@ namespace demo_english_school.Controllers
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly IValidator<AdminCreateDto> validator;
+        private readonly ILogger<AdminController> logger;
 
-        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator)
+        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator, ILogger<AdminController> logger)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
+            this.logger = logger;
         }
 
         // GET: api/admin
@@ -37,6 +39,7 @@ namespace demo_english_school.Controllers
             var admins = await unitOfWork.AdminRepository.GetAllAsync();
             var adminsDto = this.mapper.Map<IEnumerable<AdminDto>>(admins);
 
+            logger.LogInformation("Get all admins");
             return Ok(adminsDto);
         }
 
@@ -47,12 +50,14 @@ namespace demo_english_school.Controllers
             var admin = await unitOfWork.AdminRepository.GetByIdAsync(id);
             if (admin == null)
             {
+                logger.LogWarning("Admin not found");
                 return NotFound();
             }
 
             var adminDto = this.mapper.Map<AdminDto>(admin);
 
-            return adminDto;
+            logger.LogInformation("Get admin by id");
+            return Ok(adminDto);
         }
 
         // PUT: api/admin/5
@@ -63,12 +68,14 @@ namespace demo_english_school.Controllers
             var adminDto = this.mapper.Map<Admin>(admin);
             if (id != adminDto.Id)
             {
+                logger.LogWarning("Id not match");
                 return BadRequest();
             }
 
             await unitOfWork.AdminRepository.UpdateAsync(adminDto);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Update admin");
             return NoContent();
         }
 
@@ -80,6 +87,7 @@ namespace demo_english_school.Controllers
             var validationResult = this.validator.Validate(admin);  
             if (!validationResult.IsValid)
             {
+                logger.LogWarning("Validation error");
                 return BadRequest(validationResult.Errors);
             }
 
@@ -87,6 +95,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.AdminRepository.AddAsync(adminDto);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Create admin");
             return CreatedAtAction("GetAdmin", new { id = adminDto.Id }, adminDto);
         }
 
@@ -97,6 +106,7 @@ namespace demo_english_school.Controllers
             await unitOfWork.AdminRepository.DeleteAsync(id);
             await unitOfWork.SaveAsync();
 
+            logger.LogInformation("Delete admin");
             return NoContent();
         }
     }

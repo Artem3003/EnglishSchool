@@ -13,6 +13,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
 
+builder.Services.AddLogging(config => 
+{
+    config.AddConsole();
+    config.AddDebug();
+});
+
 builder.Services.AddDbContext<DemoEnglishSchoolContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DemoEnglishSchoolDb")));
 
