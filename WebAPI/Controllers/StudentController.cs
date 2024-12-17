@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FlowAnalysis.DataFlow.ValueContentAnalysis;
 using AutoMapper;
 using demo_english_school.Dtos;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace demo_english_school.Controllers
 {
@@ -20,27 +21,62 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
+        private const string StudentsCacheKey = "StudentsList";
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly IValidator<StudentCreateDto> validator;
         private readonly ILogger<StudentController> logger;
+        private readonly IMemoryCache cache;
+        private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public StudentController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<StudentCreateDto> validator, ILogger<StudentController> logger)
+        public StudentController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<StudentCreateDto> validator, ILogger<StudentController> logger, IMemoryCache cache)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
+            this.cache = cache;
         }
 
         // GET: api/student
         [HttpGet]
         public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
-            var students = await unitOfWork.StudentRepository.GetAllAsync();
-            var studentsDto = this.mapper.Map<IEnumerable<StudentDto>>(students);
+            if (cache.TryGetValue(StudentsCacheKey, out IEnumerable<StudentDto>? studentsDto))
+            {
+                logger.LogInformation("Students found in cache.");
 
-            logger.LogInformation("Get all students");
+            }
+            else
+            {
+                try
+                {
+                    await semaphoreSlim.WaitAsync();
+                    if (cache.TryGetValue(StudentsCacheKey, out studentsDto))
+                    {
+                        logger.LogInformation("Students found in cache.");
+                    }
+                    else
+                    {
+                        logger.LogInformation("Students not found in cache. Fetching from database.");
+                        var students = await unitOfWork.StudentRepository.GetAllAsync();
+                        studentsDto = this.mapper.Map<IEnumerable<StudentDto>>(students);
+
+                        var cacheEntryOptions = new MemoryCacheEntryOptions()
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(1))
+                            .SetAbsoluteExpiration(TimeSpan.FromHours(1))
+                            .SetPriority(CacheItemPriority.Normal)
+                            .SetSize(1);
+
+                        cache.Set(StudentsCacheKey, studentsDto, cacheEntryOptions);
+                    }
+                }
+                finally
+                {
+                    semaphoreSlim.Release();
+                }
+            }
+
             return Ok(studentsDto);
         }
 
@@ -94,6 +130,7 @@ namespace demo_english_school.Controllers
             var studentDto = this.mapper.Map<Student>(student);
             await unitOfWork.StudentRepository.AddAsync(studentDto);
             await unitOfWork.SaveAsync();
+            cache.Remove(StudentsCacheKey);
 
             logger.LogInformation("Create student");
             return CreatedAtAction("GetStudent", new { id = studentDto.Id }, studentDto);

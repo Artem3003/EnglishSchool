@@ -12,6 +12,7 @@ using WebAPI.Interfaces;
 using AutoMapper;
 using demo_english_school.Dtos;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace demo_english_school.Controllers
 {
@@ -19,27 +20,61 @@ namespace demo_english_school.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
+        private const string AdminsCacheKey = "AdminsList";
         private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
         private readonly IValidator<AdminCreateDto> validator;
         private readonly ILogger<AdminController> logger;
+        private readonly IMemoryCache cache;
+        private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator, ILogger<AdminController> logger)
+        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator, ILogger<AdminController> logger, IMemoryCache cache)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
+            this.cache = cache;
         }
 
         // GET: api/admin
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AdminDto>>> GetAdmins()
         {
-            var admins = await unitOfWork.AdminRepository.GetAllAsync();
-            var adminsDto = this.mapper.Map<IEnumerable<AdminDto>>(admins);
+            if (cache.TryGetValue(AdminsCacheKey, out IEnumerable<AdminDto>? adminsDto))
+            {
+                logger.LogInformation("Admins found in cache.");   
+            }
+            else
+            {   
+                try
+                {
+                    await semaphoreSlim.WaitAsync();
+                    if (cache.TryGetValue(AdminsCacheKey, out adminsDto))
+                    {
+                        logger.LogInformation("Admins found in cache.");   
+                    } 
+                    else
+                    {
+                        logger.LogInformation("Admins not found in cache. Fetching from database.");
+                        var admins = await unitOfWork.AdminRepository.GetAllAsync();
+                        adminsDto = this.mapper.Map<IEnumerable<AdminDto>>(admins);
 
-            logger.LogInformation("Get all admins");
+                        var cacheEntryOptions = new MemoryCacheEntryOptions()
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(1))
+                            .SetAbsoluteExpiration(TimeSpan.FromHours(1))
+                            .SetPriority(CacheItemPriority.Normal)
+                            .SetSize(1);
+
+                        cache.Set(AdminsCacheKey, adminsDto, cacheEntryOptions);
+                    }
+                }
+                finally
+                {
+                    semaphoreSlim.Release();
+                }
+            }
+
             return Ok(adminsDto);
         }
 
@@ -94,6 +129,7 @@ namespace demo_english_school.Controllers
             var adminDto = this.mapper.Map<Admin>(admin);
             await unitOfWork.AdminRepository.AddAsync(adminDto);
             await unitOfWork.SaveAsync();
+            cache.Remove(AdminsCacheKey);
 
             logger.LogInformation("Create admin");
             return CreatedAtAction("GetAdmin", new { id = adminDto.Id }, adminDto);

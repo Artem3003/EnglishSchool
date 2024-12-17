@@ -34,6 +34,11 @@ builder.Services.AddFluentValidationAutoValidation()
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddControllers();
 
+builder.Services.AddMemoryCache(opt => 
+{
+    opt.SizeLimit = 1024;
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(
