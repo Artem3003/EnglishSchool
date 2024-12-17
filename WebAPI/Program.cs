@@ -8,10 +8,13 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using WebAPI.Interfaces;
 using demo_english_school.Automapper;
+using demo_english_school.Options;
 var builder = WebApplication.CreateBuilder(args);
 
 
 // Add services to the container
+builder.Services.AddOptions<SwaggerSettings>().BindConfiguration("SwaggerSettings");
+builder.Services.AddOptions<CacheSettings>().BindConfiguration("CacheSettings");
 
 builder.Services.AddLogging(config => 
 {
@@ -44,7 +47,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(
     options =>
     {
-        options.SwaggerDoc("v1", new() { Title = "English School API", Version = "v1" });
+        var swaggerSettings = builder.Configuration.GetSection(nameof(SwaggerSettings)).Get<SwaggerSettings>();
+        options.SwaggerDoc(swaggerSettings?.Version, new()
+        {
+            Title = swaggerSettings?.Title,
+            Version = swaggerSettings?.Version,
+        });
     });
 
 var app = builder.Build();
@@ -54,7 +62,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c => {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "English School API");
+        c.SwaggerEndpoint($"/swagger/{builder.Configuration["SwaggerSettings:Version"]}/swagger.json", builder.Configuration["SwaggerSettings:Title"]);
     });
 }
 

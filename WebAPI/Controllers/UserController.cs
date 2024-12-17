@@ -14,6 +14,7 @@ using demo_english_school.Dtos;
 using demo_english_school.Validator;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
+using demo_english_school.Options;
 
 namespace demo_english_school.Controllers
 {
@@ -27,15 +28,17 @@ namespace demo_english_school.Controllers
         private readonly IValidator<UserCreateDto> validator;
         private readonly ILogger<UserController> logger;
         private readonly IMemoryCache cache;
+        private readonly CacheSettings cacheSettings;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger, IMemoryCache cache)
+        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger, IMemoryCache cache, CacheSettings cacheSettings)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
             this.cache = cache;
+            this.cacheSettings = cacheSettings;
         }
 
         // GET: api/user
@@ -63,8 +66,8 @@ namespace demo_english_school.Controllers
                         usersDto = this.mapper.Map<IEnumerable<UserDto>>(users);
 
                         var cacheEntryOptions = new MemoryCacheEntryOptions()
-                            .SetSlidingExpiration(TimeSpan.FromMinutes(1))
-                            .SetAbsoluteExpiration(TimeSpan.FromHours(1))
+                            .SetSlidingExpiration(TimeSpan.FromMinutes(cacheSettings.CacheDuration))
+                            .SetAbsoluteExpiration(TimeSpan.FromHours(cacheSettings.CacheDuration))
                             .SetPriority(CacheItemPriority.Normal)
                             .SetSize(1);
                         
