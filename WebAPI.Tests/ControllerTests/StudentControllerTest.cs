@@ -147,6 +147,7 @@ namespace WebAPI.Tests.ControllerTests
             var student = new Student { Id = 1, DateOfBirth = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), UserId = 1 };
 
             _mockMapper.Setup(m => m.Map<Student>(studentUpdateDto)).Returns(student);
+            _mockUnitOfWork.Setup(u => u.StudentRepository.GetAllAsync()).ReturnsAsync(new List<Student> { student });
             _mockUnitOfWork.Setup(u => u.StudentRepository.UpdateAsync(student)).Returns(Task.CompletedTask);
             _mockUnitOfWork.Setup(u => u.SaveAsync()).Returns(Task.CompletedTask);
 
@@ -166,7 +167,8 @@ namespace WebAPI.Tests.ControllerTests
             // Arrange
             var studentUpdateDto = new StudentUpdateDto { DateOfBirth = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
             var student = new Student { Id = 1, DateOfBirth = new DateTime(2000, 1, 1, 0, 0, 0, DateTimeKind.Utc), UserId = 1 };
-
+            
+            _mockUnitOfWork.Setup(u => u.StudentRepository.GetAllAsync()).ReturnsAsync(new List<Student> { student });
             _mockMapper.Setup(m => m.Map<Student>(studentUpdateDto)).Returns(student);
 
             // Act

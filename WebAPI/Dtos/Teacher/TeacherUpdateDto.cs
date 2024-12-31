@@ -4,6 +4,7 @@ namespace demo_english_school.Dtos;
 
 public class TeacherUpdateDto
 {
+    public int Id { get; set; }
     public string? Bio { get; set; }
     
     public string? Qualification { get; set; }

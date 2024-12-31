@@ -4,6 +4,7 @@ namespace demo_english_school.Dtos;
 
 public class StudentUpdateDto
 {
+    public int Id { get; set; }
     public DateTime DateOfBirth { get; set; }
 
     public string? Phone { get; set; }

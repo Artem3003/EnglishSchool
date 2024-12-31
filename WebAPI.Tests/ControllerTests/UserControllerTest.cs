@@ -143,10 +143,11 @@ namespace WebAPI.Tests.ControllerTests
         public async Task PutUser_Should_Update_User_If_Id_Matches()
         {
             // Arrange
-            var userUpdateDto = new UserUpdateDto { Username = "user1", Email = "user1@example.com" };
+            var userUpdateDto = new UserUpdateDto { Id = 1, Username = "user1", Email = "user1@example.com" };
             var user = new User { Id = 1, Username = "user1", Email = "user1@example.com" };
 
             _mockMapper.Setup(m => m.Map<User>(userUpdateDto)).Returns(user);
+            _mockUnitOfWork.Setup(u => u.UserRepository.GetAllAsync()).ReturnsAsync(new List<User> { user });
             _mockUnitOfWork.Setup(u => u.UserRepository.UpdateAsync(user)).Returns(Task.CompletedTask);
             _mockUnitOfWork.Setup(u => u.SaveAsync()).Returns(Task.CompletedTask);
 
@@ -154,7 +155,8 @@ namespace WebAPI.Tests.ControllerTests
             var result = await _controller.PutUser(1, userUpdateDto);
 
             // Assert
-            Assert.IsType<NoContentResult>(result);
+            var noContentResult = result as NoContentResult;
+            Assert.NotNull(noContentResult);
             _mockUnitOfWork.Verify(u => u.UserRepository.UpdateAsync(user), Times.Once);
             _mockUnitOfWork.Verify(u => u.SaveAsync(), Times.Once);
         }
@@ -163,10 +165,11 @@ namespace WebAPI.Tests.ControllerTests
         public async Task PutUser_Should_Return_BadRequest_If_Id_Not_Match()
         {
             // Arrange
-            var userUpdateDto = new UserUpdateDto { Username = "user1", Email = "user1@example.com" };
+            var userUpdateDto = new UserUpdateDto { Id = 1, Username = "user1", Email = "user1@example.com" };
             var user = new User { Id = 1, Username = "user1", Email = "user1@example.com" };
 
             _mockMapper.Setup(m => m.Map<User>(userUpdateDto)).Returns(user);
+            _mockUnitOfWork.Setup(u => u.UserRepository.GetAllAsync()).ReturnsAsync(new List<User>());
 
             // Act
             var result = await _controller.PutUser(2, userUpdateDto);

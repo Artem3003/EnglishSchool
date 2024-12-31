@@ -9,6 +9,7 @@ using FluentValidation.AspNetCore;
 using WebAPI.Interfaces;
 using demo_english_school.Automapper;
 using demo_english_school.Options;
+
 var builder = WebApplication.CreateBuilder(args);
 
 

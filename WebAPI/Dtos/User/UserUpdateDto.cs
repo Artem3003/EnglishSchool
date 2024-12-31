@@ -2,6 +2,7 @@ namespace demo_english_school.Dtos;
 
 public class UserUpdateDto
 {
+    public int Id { get; set; }
     public string? Username { get; set; }
 
     public string? Password { get; set; }

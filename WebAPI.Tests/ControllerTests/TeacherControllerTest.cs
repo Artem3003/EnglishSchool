@@ -147,6 +147,7 @@ namespace WebAPI.Tests.ControllerTests
             var teacher = new Teacher { Id = 1, Bio = "Bio1", UserId = 1 };
 
             _mockMapper.Setup(m => m.Map<Teacher>(teacherUpdateDto)).Returns(teacher);
+            _mockUnitOfWork.Setup(u => u.TeacherRepository.GetAllAsync()).ReturnsAsync(new List<Teacher> { teacher });
             _mockUnitOfWork.Setup(u => u.TeacherRepository.UpdateAsync(teacher)).Returns(Task.CompletedTask);
             _mockUnitOfWork.Setup(u => u.SaveAsync()).Returns(Task.CompletedTask);
 
@@ -168,6 +169,7 @@ namespace WebAPI.Tests.ControllerTests
             var teacher = new Teacher { Id = 1, Bio = "Bio1", UserId = 1 };
 
             _mockMapper.Setup(m => m.Map<Teacher>(teacherUpdateDto)).Returns(teacher);
+            _mockUnitOfWork.Setup(u => u.TeacherRepository.GetAllAsync()).ReturnsAsync(new List<Teacher> { teacher });
 
             // Act
             var result = await _controller.PutTeacher(2, teacherUpdateDto);

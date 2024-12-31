@@ -149,6 +149,7 @@ public class AdminControllerTest
         var admin = new Admin { Id = 1, Role = "Admin", UserId = 1 };
 
         _mockMapper.Setup(m => m.Map<Admin>(adminUpdateDto)).Returns(admin);
+        _mockUnitOfWork.Setup(u => u.AdminRepository.GetAllAsync()).ReturnsAsync(new List<Admin> { admin });
         _mockUnitOfWork.Setup(u => u.AdminRepository.UpdateAsync(admin)).Returns(Task.CompletedTask);
         _mockUnitOfWork.Setup(u => u.SaveAsync()).Returns(Task.CompletedTask);
 
@@ -169,6 +170,7 @@ public class AdminControllerTest
         var adminUpdateDto = new AdminUpdateDto { Id = 1, Role = "Admin", User = new UserUpdateDto { Username = "admin" } };
         var admin = new Admin { Id = 1, Role = "Admin", UserId = 1, User = new User { Id = 1, Username = "admin" } };
 
+        _mockUnitOfWork.Setup(u => u.AdminRepository.GetAllAsync()).ReturnsAsync(new List<Admin> { admin });
         _mockMapper.Setup(m => m.Map<Admin>(adminUpdateDto)).Returns(admin);
 
         // Act

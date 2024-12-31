@@ -16,6 +16,7 @@ using System.ComponentModel.DataAnnotations;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using demo_english_school.Options;
+using Microsoft.Extensions.Options;
 
 namespace demo_english_school.Controllers
 {
@@ -32,14 +33,14 @@ namespace demo_english_school.Controllers
         private readonly CacheSettings cacheSettings;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<TeacherCreateDto> validator, ILogger<TeacherController> logger, IMemoryCache cache, CacheSettings cacheSettings)
+        public TeacherController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<TeacherCreateDto> validator, ILogger<TeacherController> logger, IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
             this.cache = cache;
-            this.cacheSettings = cacheSettings;
+            this.cacheSettings = cacheSettings.Value;
         }
 
         // GET: api/teacher
@@ -108,12 +109,14 @@ namespace demo_english_school.Controllers
         public async Task<IActionResult> PutTeacher(int id, TeacherUpdateDto teacher)
         {
             var teacherDto = this.mapper.Map<Teacher>(teacher);
-            if (id != teacherDto.Id)
+            var existingUser = this.unitOfWork.TeacherRepository.GetAllAsync().Result.FirstOrDefault(u => u.Id == id);
+            if (existingUser == null || id != existingUser.Id)
             {
                 logger.LogWarning("Id not match");
                 return BadRequest();
             }
 
+            teacherDto.Id = id;
             await unitOfWork.TeacherRepository.UpdateAsync(teacherDto);
             await unitOfWork.SaveAsync();
 
@@ -126,11 +129,11 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<TeacherCreateDto>> PostTeacher(TeacherCreateDto teacher)
         {
-            var result = await validator.ValidateAsync(teacher);
-            if (!result.IsValid)
+            var validationResult = this.validator.Validate(teacher);
+            if (!validationResult.IsValid)
             {
                 logger.LogWarning("Validation error");
-                return BadRequest(result.Errors);
+                return BadRequest(validationResult.Errors);
             }
 
             var teacherDto = this.mapper.Map<Teacher>(teacher);
@@ -146,8 +149,17 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTeacher(int id)
         {
-            await unitOfWork.TeacherRepository.DeleteAsync(id);
-            await unitOfWork.SaveAsync();
+            try
+            {
+                await unitOfWork.TeacherRepository.DeleteAsync(id);
+                await unitOfWork.SaveAsync();
+                cache.Remove(TeachersCacheKey);
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogError(ex.Message);
+                return NotFound();
+            }
 
             logger.LogInformation("Delete teacher");
             return NoContent();
