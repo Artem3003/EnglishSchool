@@ -15,6 +15,7 @@ using demo_english_school.Dtos;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using demo_english_school.Options;
+using Microsoft.Extensions.Options;
 
 namespace demo_english_school.Controllers
 {
@@ -31,14 +32,14 @@ namespace demo_english_school.Controllers
         private readonly CacheSettings cacheSettings;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public StudentController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<StudentCreateDto> validator, ILogger<StudentController> logger, IMemoryCache cache, CacheSettings cacheSettings)
+        public StudentController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<StudentCreateDto> validator, ILogger<StudentController> logger, IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
             this.cache = cache;
-            this.cacheSettings = cacheSettings;
+            this.cacheSettings = cacheSettings.Value;
         }
 
         // GET: api/student
@@ -123,11 +124,11 @@ namespace demo_english_school.Controllers
         [HttpPost]
         public async Task<ActionResult<StudentCreateDto>> PostStudent(StudentCreateDto student)
         {
-            var result = await validator.ValidateAsync(student);
-            if (!result.IsValid)
+            var validationResult = this.validator.Validate(student);
+            if (!validationResult.IsValid)
             {
                 logger.LogWarning("Validation error");
-                return BadRequest(result.Errors);
+                return BadRequest(validationResult.Errors);
             }
 
             var studentDto = this.mapper.Map<Student>(student);
@@ -143,8 +144,17 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            await unitOfWork.StudentRepository.DeleteAsync(id);
-            await unitOfWork.SaveAsync();
+            try
+            {
+                await unitOfWork.StudentRepository.DeleteAsync(id);
+                await unitOfWork.SaveAsync();
+                cache.Remove(StudentsCacheKey);
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return NotFound();
+            }
 
             logger.LogInformation("Delete student");
             return NoContent();

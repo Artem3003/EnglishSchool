@@ -14,6 +14,7 @@ using demo_english_school.Dtos;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using demo_english_school.Options;
+using Microsoft.Extensions.Options;
 
 namespace demo_english_school.Controllers
 {
@@ -30,14 +31,14 @@ namespace demo_english_school.Controllers
         private readonly CacheSettings cacheSettings;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator, ILogger<AdminController> logger, IMemoryCache cache, CacheSettings cacheSettings)
+        public AdminController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<AdminCreateDto> validator, ILogger<AdminController> logger, IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
             this.cache = cache;
-            this.cacheSettings = cacheSettings;
+            this.cacheSettings = cacheSettings.Value;
         }
 
         // GET: api/admin
@@ -142,8 +143,17 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteAdmin(int id)
         {
-            await unitOfWork.AdminRepository.DeleteAsync(id);
-            await unitOfWork.SaveAsync();
+            try
+            {
+                await unitOfWork.AdminRepository.DeleteAsync(id);
+                await unitOfWork.SaveAsync();
+                cache.Remove(AdminsCacheKey);
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return NotFound();
+            }
 
             logger.LogInformation("Delete admin");
             return NoContent();

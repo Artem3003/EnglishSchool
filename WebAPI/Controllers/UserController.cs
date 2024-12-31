@@ -15,6 +15,7 @@ using demo_english_school.Validator;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using demo_english_school.Options;
+using Microsoft.Extensions.Options;
 
 namespace demo_english_school.Controllers
 {
@@ -31,14 +32,14 @@ namespace demo_english_school.Controllers
         private readonly CacheSettings cacheSettings;
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
-        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger, IMemoryCache cache, CacheSettings cacheSettings)
+        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger, IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
             this.cache = cache;
-            this.cacheSettings = cacheSettings;
+            this.cacheSettings = cacheSettings.Value;
         }
 
         // GET: api/user
@@ -104,15 +105,16 @@ namespace demo_english_school.Controllers
         // PUT: api/user/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(int id, User user)
+        public async Task<IActionResult> PutUser(int id, UserUpdateDto user)
         {
-            if (id != user.Id)
+            var userDto = this.mapper.Map<User>(user);
+            if (id != userDto.Id)
             {
                 logger.LogWarning("Id not match");
                 return BadRequest();
             }
 
-            await unitOfWork.UserRepository.UpdateAsync(user);
+            await unitOfWork.UserRepository.UpdateAsync(userDto);
             await unitOfWork.SaveAsync();
 
             logger.LogInformation("Update user");
@@ -144,8 +146,17 @@ namespace demo_english_school.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            await unitOfWork.UserRepository.DeleteAsync(id);
-            await unitOfWork.SaveAsync();
+            try
+            {
+                await unitOfWork.UserRepository.DeleteAsync(id);
+                await unitOfWork.SaveAsync();
+                cache.Remove(UsersCacheKey);
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return NotFound();
+            }
 
             logger.LogInformation("Delete user");
             return NoContent();

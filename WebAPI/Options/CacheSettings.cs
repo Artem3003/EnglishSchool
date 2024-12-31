@@ -1,7 +1,6 @@
-namespace demo_english_school.Options
+namespace demo_english_school.Options;
+
+public class CacheSettings
 {
-    public class CacheSettings
-    {
-        public int CacheDuration { get; set; }
-    }
+    public int CacheDuration { get; set; }
 }
