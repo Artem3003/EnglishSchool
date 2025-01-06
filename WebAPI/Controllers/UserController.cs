@@ -15,7 +15,6 @@ using demo_english_school.Validator;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 using demo_english_school.Options;
-using Microsoft.Extensions.Options;
 
 namespace demo_english_school.Controllers
 {
@@ -33,12 +32,14 @@ namespace demo_english_school.Controllers
         private static readonly SemaphoreSlim semaphoreSlim = new SemaphoreSlim(1, 1);
 
         public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger, IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
+        public UserController(IUnitOfWork unitOfWork, IMapper mapper, IValidator<UserCreateDto> validator, ILogger<UserController> logger, IMemoryCache cache, IOptions<CacheSettings> cacheSettings)
         {
             this.unitOfWork = unitOfWork;
             this.mapper = mapper;
             this.validator = validator;
             this.logger = logger;
             this.cache = cache;
+            this.cacheSettings = cacheSettings.Value;
             this.cacheSettings = cacheSettings.Value;
         }
 
@@ -106,6 +107,7 @@ namespace demo_english_school.Controllers
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUser(int id, UserUpdateDto user)
+        public async Task<IActionResult> PutUser(int id, UserUpdateDto user)
         {
             var userDto = this.mapper.Map<User>(user);
             var existingUser = this.unitOfWork.UserRepository.GetAllAsync().Result.FirstOrDefault(u => u.Id == id);
@@ -147,6 +149,18 @@ namespace demo_english_school.Controllers
         // DELETE: api/user/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
+        {
+            try
+            {
+                await unitOfWork.UserRepository.DeleteAsync(id);
+                await unitOfWork.SaveAsync();
+                cache.Remove(UsersCacheKey);
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogWarning(ex.Message);
+                return NotFound();
+            }
         {
             try
             {
