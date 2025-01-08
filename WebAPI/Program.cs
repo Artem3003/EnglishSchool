@@ -9,6 +9,10 @@ using FluentValidation.AspNetCore;
 using WebAPI.Interfaces;
 using demo_english_school.Automapper;
 using demo_english_school.Options;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
+using OpenTelemetry;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,9 +23,40 @@ builder.Services.AddOptions<CacheSettings>().BindConfiguration("CacheSettings");
 
 builder.Services.AddLogging(config => 
 {
+    config.ClearProviders();
     config.AddConsole();
     config.AddDebug();
+    config.AddOpenTelemetry(opt =>
+    {
+        opt.IncludeFormattedMessage = true;
+        opt.IncludeScopes = true;
+    });
 });
+
+builder.Host.UseSerilog((context, config) => config
+    .ReadFrom.Configuration(context.Configuration));
+
+var otel = builder.Services.AddOpenTelemetry();
+
+otel.WithMetrics(metrics => 
+{
+    metrics.AddAspNetCoreInstrumentation();
+    metrics.AddMeter("Microsoft.AspNetCore.Hosting");
+    metrics.AddMeter("Microsoft.AspNetCore.Server.Kestrel");
+});
+
+otel.WithTracing(tracing => 
+{
+    tracing.AddAspNetCoreInstrumentation();
+    tracing.AddHttpClientInstrumentation();
+    tracing.AddSource();
+});
+
+var OtlpEndpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+if (OtlpEndpoint != null)
+{
+    otel.UseOtlpExporter();
+}
 
 builder.Services.AddDbContext<DemoEnglishSchoolContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DemoEnglishSchoolDb")));
