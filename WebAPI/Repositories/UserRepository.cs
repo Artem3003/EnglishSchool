@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using demo_english_school.Data;
 using demo_english_school.Interfaces;
 using demo_english_school.Models;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 
 namespace demo_english_school.Repositories;
@@ -23,6 +24,8 @@ public class UserRepository : IUserRepository
     public async Task AddAsync(User model)
     {
         ArgumentNullException.ThrowIfNull(model);
+
+        model.Password = PasswordEncryption(model.Password!);
 
         await context.Users.AddAsync(model);
         await context.SaveChangesAsync();
@@ -67,6 +70,8 @@ public class UserRepository : IUserRepository
     {
         ArgumentNullException.ThrowIfNull(model);
 
+        model.Password = PasswordEncryption(model.Password!);
+
         var userToUpdate = await context.Users.FindAsync(model.Id);
         if (userToUpdate != null)
         {
@@ -86,5 +91,12 @@ public class UserRepository : IUserRepository
     public async Task<bool> UserExistsAsync(int id)
     {
         return await context.Users.AnyAsync(a => a.Id == id);
+    }
+
+    private string PasswordEncryption(string password)
+    {
+        ArgumentNullException.ThrowIfNull(password);
+
+        return BCrypt.Net.BCrypt.HashPassword(password);
     }
 }
